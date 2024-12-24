@@ -1,16 +1,23 @@
 #pragma once
 
 // -----Internals------
-#include "goose.h"
+#include "utility.h"
 #include "sensor_struct.h"
+#include "bmi088.h"
 // -----Internals------
 
 // Include your sensor libraries here
 
 namespace sensors {
 
+Imu bmi;
 
-void init() {}
+void init() {
+    bmi.begin();
+}
 
-void update() {}
+Vec getGyro() {
+    return bmi.getGyro();
+}
+
 }  // namespace sensors

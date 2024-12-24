@@ -4,38 +4,67 @@
 #include "sensors.h"
 #include "actuators.h"
 #include "sub_task.h"
-#include "goose.h"
+#include "utility.h"
 #include "control.h"
 #include "time_handler.h"
 // -----Internals------
 
 #include "orientation.h"
 
-// Tasks go here-- this keeps the main file clean and focused on the "flow" of tasks
-// Our general functions will be defined here things like our main loops
-// Long sections of code or repeated code loops can be moved to sub_task.h
-
-// The functions in place here can be changed to suit your needs
-// The ones listed here serve as inspiration--feel free to change them as
-// you need -- but remember to change your Tasks in main.h
-
 namespace task {
 
-    // Globals can be defined here
-    // Can be used for code that only runs once
-    // This can also be run multiple times by changing the code flow in main.h
-    void Setup() {}
+    // I have commented my changes, sorry if you didnt want it pushed but it works so
+    // enjoy testing it yourself - I think the problems were:
+    // 1) You didn'd convert the bmi inputs to to radians
+    // 2) The way you calculated delta time
+    // 3) The sensor input was being maxed out consistently
 
-    // Can be used to automatically test actuators
-    // Very useful for quick plug and play testing
-    void ActuatorTest() {}
+    Timer timer;
+    Orientation ori;
 
-    // Can be used to print sensor values and any other required calibration
-    void Calibration() {}
+    void Setup() {
+        sensors::init();
 
-    // Code that loops
-    void Loop() {}
+    }
 
-    void Loop2() {}
+    void ActuatorTest() {
 
-}  // namespace task
+    }
+
+    void Calibration() {
+        // Make sure the first iteration doesnt mess anything up with a large delta t
+        timer.start();
+        timer.stop();
+    }
+
+    void Loop() {
+        // Moved around timer because the way you did it didnt make sense
+        float dt = timer.deltaT();
+        timer.start();
+
+        // Changed sensor range to 2000 as it was capping out at 125 (bmi088.h)
+        // Changed dt to positive because why the hell was it negative lmfao (oritentation.h)
+        auto gyro = sensors::getGyro() * DEG2RAD;
+        auto ypr = ori.gyroToYpr(gyro, dt);
+
+        // IDK what this does but im guessing ur using it
+        actuators::update(ypr.y, ypr.z);
+
+        // Added some more graphs because #WeLoveData
+        GRAPH("x", ypr.x, TOP);
+        GRAPH("y", ypr.y, TOP);
+        GRAPH("z", ypr.z, TOP);
+        GRAPH("x", gyro.x, BOT);
+        GRAPH("y", gyro.y, BOT);
+        GRAPH("z", gyro.z, BOT);
+        END_LOG;
+
+        // End the timer at an appropriate time
+        timer.stop();
+    }
+
+    void Loop2() {
+
+    }
+
+}
