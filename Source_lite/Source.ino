@@ -3,10 +3,10 @@
 
 void setup()
 {
-    # Code to run once goes here.
+    // Code to run once goes here.
 }
 
 void loop()
 {
-    # Code to loop goes here.
+    // Code to loop goes here.
 }
